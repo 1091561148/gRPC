@@ -1,10 +1,11 @@
-package com.demo.rpc.rpc;
+package com.demo.rpc.rpc.socket;
 
-import com.demo.rpc.reflex.Reflex;
+import com.demo.rpc.rpc.CalculateRequest;
+import com.demo.rpc.rpc.InvokerProtocol;
 import com.demo.rpc.serialization.KryoSerialization;
+import com.demo.rpc.IocApplication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -19,7 +20,7 @@ import java.net.Socket;
  * @Date: 2021/05/23/19:35
  * @Description:
  */
-public class CalculateRpcRequest {
+public class CalculateRpcRequest implements CalculateRequest {
     private final static Logger logger = LoggerFactory.getLogger(CalculateRpcRequest.class);
     /**
      * 端口号
@@ -35,7 +36,7 @@ public class CalculateRpcRequest {
         return address;
     }
 
-    private byte[] generateRequest(RPCObject rpc){
+    private byte[] generateRequest(InvokerProtocol rpc){
         KryoSerialization kryoSerialization = new KryoSerialization();
         return kryoSerialization.serialize(rpc);
     }
@@ -45,7 +46,8 @@ public class CalculateRpcRequest {
      * @param rpc
      * @return
      */
-    public int getResponse(RPCObject rpc){
+    @Override
+    public Object rpcInvoke(InvokerProtocol rpc){
         String address = chooseTarget(null);
         try {
             Socket socket = new Socket(address, PORT);
@@ -61,8 +63,8 @@ public class CalculateRpcRequest {
             ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
             Object response = objectInputStream.readObject();
 
-            if (response instanceof Integer) {
-                return (Integer) response;
+            if(response != null){
+                return response;
             } else {
                 throw new InternalError();
             }
@@ -76,40 +78,35 @@ public class CalculateRpcRequest {
     /**
      * 处理请求
      */
-    public void postRequest(){
+    @Override
+    public void rpcResponse(){
         try(ServerSocket listener = new ServerSocket(PORT)) {
             while (true) {
                 try(Socket socket = listener.accept()) {
                     ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                     Object object = objectInputStream.readObject();
 
-                    RPCObject rpcObject;
+                    InvokerProtocol invokerProtocol;
                     // 将请求反序列化
                     if (object instanceof byte[]) {
                         byte[] oo = (byte[]) object;
                         KryoSerialization kryoSerialization = new KryoSerialization();
-                        rpcObject = kryoSerialization.deserialize(oo, RPCObject.class);
-                        logger.info("request is {}", rpcObject);
+                        invokerProtocol = kryoSerialization.deserialize(oo, InvokerProtocol.class);
+                        logger.info("request is {}", invokerProtocol);
                     } else {
-                        return;
+                        break;
                     }
 
                     // 调用服务
-                    int result = 0;
-                    Object myClass = Reflex.getBean(rpcObject.getMyClass());
+                    Object myClass = IocApplication.getBean(invokerProtocol.getClassName());
                     Class<?> clazz = myClass.getClass();
-                    Object[] paramValues = rpcObject.getParamValues();
-                    Method method = clazz.getMethod(rpcObject.getMethod(), rpcObject.getParameterTypes());
+                    Object[] paramValues = invokerProtocol.getParamValues();
+                    Method method = clazz.getMethod(invokerProtocol.getMethodName(), invokerProtocol.getParameterTypes());
                     Object resultObj = method.invoke(myClass, paramValues);
-                    if(resultObj instanceof Integer){
-                        result = (Integer) resultObj;
-                    } else {
-                        throw new UnsupportedOperationException();
-                    }
 
                     // 返回结果
                     ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-                    objectOutputStream.writeObject(result);
+                    objectOutputStream.writeObject(resultObj);
                 } catch (Exception e) {
                     e.printStackTrace();
                     logger.error("postRequest fail{}", e.getMessage());

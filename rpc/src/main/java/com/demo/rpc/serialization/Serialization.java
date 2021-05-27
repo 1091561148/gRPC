@@ -11,7 +11,19 @@ import java.io.IOException;
  */
 public interface Serialization {
 
+    /**
+     * @param obj
+     * @return
+     * @throws IOException
+     */
     byte[] serialize(Object obj) throws IOException;
 
+    /**
+     * @param bytes
+     * @param clz
+     * @param <T>
+     * @return
+     * @throws IOException
+     */
     <T> T deserialize(byte[] bytes, Class<T> clz) throws IOException;
 }

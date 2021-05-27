@@ -6,5 +6,6 @@ package com.demo.rpc.api;
  */
 
 public interface Calculator {
-    public int add(int a, int b);
+    int add(int a, int b);
+    String div(String a, String b);
 }

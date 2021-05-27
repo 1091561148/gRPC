@@ -1,15 +1,15 @@
-package com.demo.rpc.reflex;
+package com.demo.rpc;
 
 import com.demo.rpc.annotation.MyAutowired;
 import com.demo.rpc.annotation.MyRPC;
 import com.demo.rpc.annotation.MyTest;
-import com.demo.rpc.rpc.CalculateRpcRequest;
-import com.demo.rpc.rpc.RPCObject;
+import com.demo.rpc.reflex.JdkProxy;
+import com.demo.rpc.rpc.CalculateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.lang.reflect.*;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,13 +20,18 @@ import java.util.Map;
  * Created with IntelliJ IDEA.
  *
  * @Author: gjf
- * @Date: 2021/05/23/19:50
+ * @Date: 2021/05/27/21:39
  * @Description:
  */
-public class Reflex {
-    private final static Logger logger = LoggerFactory.getLogger(Reflex.class);
+public class IocApplication {
+    private final static Logger logger = LoggerFactory.getLogger(IocApplication.class);
+    /**
+     * RPC处理handler
+     */
+    private CalculateRequest calculateRequest;
 
-    public Reflex(String packageName){
+    public IocApplication(String packageName, CalculateRequest request){
+        this.calculateRequest = request;
         doScanner(this.getClass().getClassLoader(), packageName);
     }
 
@@ -36,6 +41,9 @@ public class Reflex {
     }
 
     private static List<String> classNames = new ArrayList<>();
+    /**
+     * IOC 容器
+     */
     private static Map<String, Object> ioc = new HashMap<>();
 
     /**
@@ -85,10 +93,11 @@ public class Reflex {
                     }
                     Object instance = clazz.newInstance();
                     ioc.put(beanName, instance);
+                    JdkProxy jdkProxy = new JdkProxy();
 //                    //返回接口类
                     Class[] interfaces = clazz.getInterfaces();
                     for (Class<?> i : interfaces){
-                        ioc.put(i.getName(), getProxy(beanName, i, instance));
+                        ioc.put(i.getName(), jdkProxy.getProxy(calculateRequest, beanName, i, instance));
                     }
 
                 }else if(clazz.isAnnotationPresent(MyTest.class)){
@@ -100,34 +109,6 @@ public class Reflex {
         }
     }
 
-    /**
-     * Description:JDK 动态反射
-     * return: void
-     */
-    @SuppressWarnings("unchecked")
-    private <T> T getProxy(String beanName, Class<T> clazz, Object o) {
-        return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[]{clazz},  (proxy, method, args) -> {
-            logger.info("method:" + method.getName());
-            //排除toString
-            if ("toString".equals(method.getName())) {
-                return method.invoke(o, args);
-            }
-
-            RPCObject rpc = new RPCObject();
-            //方法名：findAll
-            rpc.setMethod(method.getName());
-            //接口对象的实现类
-            rpc.setMyClass(beanName);
-            //准备参数2 ： params:args
-            rpc.setParamValues(args);
-            rpc.setParameterTypes(method.getParameterTypes());
-            // 获取被调用方法的返回值类型
-            rpc.setReturnTypes(method.getReturnType());
-            CalculateRpcRequest request = new CalculateRpcRequest();
-            return request.getResponse(rpc);
-        });
-
-    }
     /**
      * Description:自动化的依赖注入
      * return: void
@@ -173,5 +154,4 @@ public class Reflex {
 //        });
         return ioc.get(name);
     }
-
 }

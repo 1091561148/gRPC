@@ -17,4 +17,9 @@ public class CalculatorRemoteImpl implements Calculator {
     public int add(int a, int b) {
         return a + b;
     }
+
+    @Override
+    public String div(String a, String b) {
+        return a + b;
+    }
 }
