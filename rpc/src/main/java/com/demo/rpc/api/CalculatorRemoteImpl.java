@@ -1,6 +1,7 @@
-package com.demo.rpc.API;
+package com.demo.rpc.api;
 
-import com.demo.rpc.Annotation.MyRPC;
+
+import com.demo.rpc.annotation.MyRPC;
 
 /**
  * Created with IntelliJ IDEA.
@@ -9,7 +10,7 @@ import com.demo.rpc.Annotation.MyRPC;
  * @Date: 2021/05/23/19:23
  * @Description:
  */
-@MyRPC("CalculatorRemoteImpl")
+@MyRPC
 public class CalculatorRemoteImpl implements Calculator {
 
     @Override

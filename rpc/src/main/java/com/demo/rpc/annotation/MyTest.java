@@ -1,14 +1,14 @@
-package com.demo.rpc.Annotation;
+package com.demo.rpc.annotation;
 import java.lang.annotation.*;
 
 /**
- * @description：MyRPC
+ * @description：MyTest
  * @author：GJF
  */
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface MyRPC {
+public @interface MyTest {
     String value() default "";
 }

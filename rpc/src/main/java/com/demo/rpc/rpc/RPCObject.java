@@ -1,6 +1,4 @@
-package com.demo.rpc.RPC;
-
-import java.util.List;
+package com.demo.rpc.rpc;
 
 /**
  * Created with IntelliJ IDEA.
@@ -11,15 +9,24 @@ import java.util.List;
  */
 public class RPCObject {
     private String method;
-    private List<Object> paramValues;
+    private Object[] paramValues;
     private String myClass;
-    private Class[]returnTypes;
+    private Class<?> returnTypes;
+    private Class[] parameterTypes;
 
-    public Class[] getReturnTypes() {
+    public Class[] getParameterTypes() {
+        return this.parameterTypes;
+    }
+
+    public void setParameterTypes(Class[] parameterTypes) {
+        this.parameterTypes = parameterTypes;
+    }
+
+    public Class<?> getReturnTypes() {
         return returnTypes;
     }
 
-    public void setReturnTypes(Class[] returnTypes) {
+    public void setReturnTypes(Class<?> returnTypes) {
         this.returnTypes = returnTypes;
     }
 
@@ -39,11 +46,11 @@ public class RPCObject {
         this.method = method;
     }
 
-    public List<Object> getParamValues() {
+    public Object[] getParamValues() {
         return paramValues;
     }
 
-    public void setParamValues(List<Object> paramValues) {
+    public void setParamValues(Object[] paramValues) {
         this.paramValues = paramValues;
     }
 }
