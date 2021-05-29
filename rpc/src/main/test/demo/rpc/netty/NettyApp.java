@@ -3,10 +3,14 @@ package demo.rpc.netty;
 import com.demo.rpc.annotation.MyAutowired;
 import com.demo.rpc.annotation.MyTest;
 import com.demo.rpc.api.Calculator;
+import com.demo.rpc.registry.zk.ZkServiceDiscoveryImpl;
+import com.demo.rpc.registry.zk.ZkServiceRegistryImpl;
 import com.demo.rpc.rpc.netty.CalculateNettyRequest;
 import com.demo.rpc.IocApplication;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.net.InetSocketAddress;
 
 /**
  * Created with IntelliJ IDEA.
@@ -26,6 +30,17 @@ public class NettyApp {
         iocApplication.init();
     }
 
+
+    @Test
+    public void test(){
+        ZkServiceRegistryImpl zkServiceRegistry = new ZkServiceRegistryImpl();
+        zkServiceRegistry.registerService("test", new InetSocketAddress("127.0.0.1", 8080));
+        zkServiceRegistry.registerService("test", new InetSocketAddress("127.0.0.1", 8081));
+
+        ZkServiceDiscoveryImpl zkServiceDiscovery = new ZkServiceDiscoveryImpl();
+        InetSocketAddress k = zkServiceDiscovery.lookupService("test");
+        System.out.println("ip:"+k.getAddress()+"-port:"+k.getPort());
+    }
     @MyAutowired
     public Calculator calculator;
 

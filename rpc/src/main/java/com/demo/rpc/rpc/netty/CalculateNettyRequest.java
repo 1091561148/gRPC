@@ -46,7 +46,7 @@ public class CalculateNettyRequest implements CalculateRequest {
                     .option(ChannelOption.TCP_NODELAY, true)
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
-                        public void initChannel(SocketChannel ch) throws Exception {
+                        public void initChannel(SocketChannel ch) {
                             ChannelPipeline pipeline = ch.pipeline();
                             //自定义协议解码器
                             //入参，框架最大长度，长度偏移，长度，补偿值，去除第一个字节数
